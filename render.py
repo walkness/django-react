@@ -6,9 +6,6 @@ from .exceptions import ReactRenderingError, RenderServerError
 from django.conf import settings
 from django.shortcuts import render, redirect
 
-from nearby_django.utils import get_languages_from_request
-from nearby_auth.serializers import ProfileSerializer, StaffProfileSerializer
-
 
 class RenderedComponent(object):
 
@@ -109,14 +106,8 @@ render_server = RenderServer()
 def react_render(request, props=None, status=None):
     if props is None:
         props = {}
-    props['languages'] = get_languages_from_request(request)
     if request.user.is_authenticated():
         props['isLoggedIn'] = True
-        if request.user.is_staff:
-            serializer = StaffProfileSerializer(request.user.profile)
-        else:
-            serializer = ProfileSerializer(request.user.profile)
-        props['currentUser'] = serializer.data
     else:
         props['isLoggedIn'] = False
         props['currentUser'] = None
