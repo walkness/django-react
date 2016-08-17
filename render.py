@@ -1,10 +1,10 @@
-import json
 import hashlib
 import requests
 from .exceptions import ReactRenderingError, RenderServerError
 
 from django.conf import settings
 from django.shortcuts import render, redirect
+from rest_framework.renderers import JSONRenderer
 
 
 class RenderedComponent(object):
@@ -23,7 +23,7 @@ class RenderedComponent(object):
 
     def as_context(self):
         return {'rendered': self.markup,
-                'initialState': json.dumps(self.initialState),
+                'initialState': JSONRenderer().render(self.initialState),
                 'head': self.head}
 
 
@@ -42,19 +42,19 @@ class RenderServer(object):
         url = settings.REACT_RENDER_SERVER_URL
 
         if props is not None:
-            serialized_props = json.dumps(props)
+            serialized_props = JSONRenderer().render(props)
         else:
             serialized_props = None
 
         options = {
             'path': path,
-            'serializedProps': serialized_props
+            'props': props
         }
         if status:
             options['status'] = status
-        serialized_options = json.dumps(options)
+        serialized_options = JSONRenderer().render(options)
         options_hash = hashlib.sha1(
-            serialized_options.encode('utf-8')).hexdigest()
+            serialized_options).hexdigest()
 
         try:
             res = requests.post(
